@@ -10,7 +10,7 @@
 }
 
 :root {
-  --bg-primary: #0d0f13;
+  --bg-primary: #0a0e1a;
   --bg-secondary: #151820;
   --bg-card: #1a1d28;
   --border: #252a36;
@@ -26,14 +26,20 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--bg-primary);
+  background-image: url('/arcana_background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: var(--text-primary);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 0 2rem 8rem;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .ip-label {
@@ -47,7 +53,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 1.25rem;
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 .socials a {
@@ -67,13 +73,117 @@ body {
   transform: scale(1.05);
 }
 
+/* Unified card wrapping server-ip + action-row */
+.card-group {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 60px var(--accent-glow);
+  margin-top: 0;
+}
+
+/* Action row: donate + metrics side by side */
+.action-row {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  margin-top: 0;
+}
+
+/* Donate CTA */
+.donate-cta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 0 0 0 12px;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+  color: #ffffff;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.donate-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  transform: translateX(-100%);
+  animation: donate-shimmer 3s ease-in-out infinite;
+}
+
+.donate-cta svg {
+  width: 36px;
+  height: 36px;
+  fill: #ef4444;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));
+  flex-shrink: 0;
+  animation: heartbeat 1.4s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14%       { transform: scale(1.25); }
+  28%       { transform: scale(1); }
+  42%       { transform: scale(1.15); }
+  56%       { transform: scale(1); }
+}
+
+.donate-cta-label {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #fbbf24;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.donate-cta-caption {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-align: center;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.donate-cta:hover {
+  animation: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(249, 115, 22, 0.85),
+    inset 0 0 25px rgba(249, 115, 22, 0.25);
+}
+
+.donate-cta:hover svg {
+  filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.9));
+}
+
+@keyframes donate-shimmer {
+  0%        { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(200%); }
+}
+
+
+.donate-disclaimer {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
 /* Discord CTA */
 .discord-cta {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
   padding: 0.85rem 1.75rem;
   border-radius: 12px;
   border: 1px solid #5865F2;
@@ -133,8 +243,8 @@ body {
 .video-bg {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: -20%;
+  width: 140%;
   height: 100%;
   object-fit: cover;
   z-index: -2;
@@ -156,7 +266,7 @@ body {
 
 /* Header */
 .logo {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
 }
 
 .logo-img {
@@ -166,12 +276,13 @@ body {
 }
 
 .hero-img {
-  width: 260px;
-  height: 260px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5));
+  width: 640px;
+  max-width: 90vw;
+  height: auto;
+  margin-bottom: -15%;
+  margin-left: calc((640px - 100%) / -2 - 1rem);
+  clip-path: inset(0 0 18% 0);
+  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.6));
 }
 
 .title {
@@ -179,7 +290,7 @@ body {
   font-size: 5.5rem;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.75rem;
   line-height: 1.1;
   letter-spacing: 0.02em;
   -webkit-text-stroke: 5px #000000;
@@ -195,33 +306,25 @@ body {
   color: #ffffff;
   letter-spacing: 0.04em;
   cursor: pointer;
-  padding: 1.25rem 2.25rem;
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  padding: 0.9rem 2.25rem;
+  border-radius: 12px 12px 0 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
   background: var(--bg-card);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 60px var(--accent-glow);
   transition: all 0.3s ease;
   display: block;
   position: relative;
-  margin-top: 1rem;
+  margin-top: 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .server-ip.copied {
   background: #22c55e;
-  border-color: #22c55e;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(34, 197, 94, 0.4);
+  border-bottom-color: #22c55e;
 }
 
 .server-ip:hover {
   color: var(--accent-bright);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 15px var(--accent-bright);
 }
 
 .server-ip .tooltip {
@@ -250,21 +353,19 @@ body {
 
 /* Metrics */
 .metrics {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1px;
   background: var(--border);
-  border-radius: 12px;
+  border-radius: 0 0 12px 0;
   overflow: hidden;
-  box-shadow:
-    0 0 0 1px var(--border),
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 60px var(--accent-glow);
 }
 
 .metric {
+  flex: 1;
   background: var(--bg-card);
-  padding: 1.25rem 1.5rem;
+  padding: 0.7rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -310,13 +411,28 @@ body {
 
 /* Responsive */
 @media (max-width: 520px) {
+  .action-row {
+    flex-direction: column;
+  }
+
+  .donate-cta {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+
+  .metrics {
+    border-radius: 0 0 12px 12px;
+  }
   body {
     padding: 1.5rem;
   }
 
   .hero-img {
-    width: 160px;
-    height: 160px;
+    width: 100%;
+    height: auto;
+    margin-left: 0;
+    margin-bottom: -10%;
   }
 
   .title {
