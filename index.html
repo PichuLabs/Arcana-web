@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcanaSMP</title>
+  <link rel="icon" type="image/png" href="/arcanasmp_icon64x64.png">
+</head>
+<body>
+
+  <div class="video-overlay"></div>
+
+  <!-- Top header bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+    <button class="hamburger-btn" id="hamburgerBtn" type="button" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="topbar-pills">
+      <div class="status-pill server-pill" onclick="copyIP()">
+        <div class="pill-icon server-pill-icon">
+          <span class="online-dot"></span>
+        </div>
+        <div class="pill-text">
+          <span class="pill-title">Play Now</span>
+          <span class="pill-value">play.ArcanaSMP.com</span>
+          <span class="pill-sub"><span id="pillOnlineCount">—</span> playing</span>
+        </div>
+        <div class="tooltip" id="copyTooltip">Copied!</div>
+      </div>
+
+      <div class="topbar-logo">
+        <img src="arcanasmp_pengu.png" alt="ArcanaSMP" class="topbar-logo-img">
+      </div>
+
+      <a href="https://discord.gg/pEzt5NzQa8" class="status-pill discord-pill" target="_blank" rel="noopener" aria-label="Discord">
+        <div class="pill-icon discord-pill-icon">
+          <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        </div>
+        <div class="pill-text">
+          <span class="pill-title">Join</span>
+          <span class="pill-value">Discord</span>
+          <span class="pill-sub"><span id="discordOnlineCount">—</span> online</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="topbar-account" id="topbarAccount">
+      <button class="login-btn" id="topbarLoginBtn" type="button">Log In</button>
+    </div>
+    </div>
+  </header>
+
+  <!-- Backdrop shown when the sidebar drawer is open on mobile -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- Horizontal category nav row -->
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a href="#" class="topnav-item category-item" data-route="home">
+        <span class="category-name">Home</span>
+      </a>
+      <a href="#" class="topnav-item category-item topnav-mobile-only" data-route="store" id="topnavStoreLink">
+        <span class="category-name">Store</span>
+      </a>
+      <a href="#rules" class="topnav-item category-item" data-route="rules">
+        <span class="category-name">Rules</span>
+      </a>
+      <a href="#vote" class="topnav-item category-item" data-route="vote">
+        <span class="category-name">Vote</span>
+      </a>
+      <a href="#roadmap" class="topnav-item category-item" data-route="roadmap">
+        <span class="category-name">Roadmap</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main two-column layout -->
+  <div class="page-grid">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-card store-card">
+        <div class="sidebar-heading">Store</div>
+        <nav class="categories-nav" id="categoriesNav">
+          <!-- Tebex categories injected by main.js -->
+        </nav>
+        <div class="store-featured" id="storeFeatured" hidden>
+          <div class="store-featured-label">Featured</div>
+          <div class="store-featured-card" id="storeFeaturedCard">
+            <!-- Featured package injected by main.js -->
+          </div>
+        </div>
+        <a class="store-browse-btn" id="storeBrowseBtn" href="#">Browse Store &rarr;</a>
+      </div>
+
+      <div class="sidebar-card login-card">
+        <div class="login-card-empty" id="loginCardEmpty">
+          <div class="login-card-empty-text">Not logged in</div>
+          <button class="login-card-btn" id="loginCardBtn" type="button">Log In</button>
+        </div>
+        <div class="login-card-user" id="loginCardUser" hidden>
+          <img class="login-card-head" id="loginCardHead" src="" alt="">
+          <div class="login-card-meta">
+            <span class="login-card-name" id="loginCardName"></span>
+            <button class="login-card-logout" id="loginCardLogout" type="button">Log out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-card sidebar-cart-card">
+        <div class="sidebar-cart-header">
+          <span class="sidebar-heading sidebar-heading--inline">Your Cart</span>
+          <span class="sidebar-cart-count-badge" id="sidebarCartBadge" hidden>0</span>
+        </div>
+        <div class="sidebar-cart-empty" id="sidebarCartEmpty">Cart is empty</div>
+        <div class="sidebar-cart-summary" id="sidebarCartSummary" hidden>
+          <div class="sidebar-cart-row">
+            <span class="sidebar-cart-count" id="sidebarCartCount">0 items</span>
+            <span class="sidebar-cart-total" id="sidebarCartTotal">—</span>
+          </div>
+          <button class="sidebar-cart-btn" id="sidebarCartBtn" type="button">View &amp; Checkout</button>
+        </div>
+      </div>
+
+      <div class="sidebar-card stats-card">
+        <div class="sidebar-heading">Server Stats</div>
+        <div class="stat-row">
+          <span class="stat-label">Online</span>
+          <span class="stat-value">
+            <span class="online-dot"></span>
+            <span id="onlineValue">—</span>
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Server Age</span>
+          <span class="stat-value" id="serverAge">—</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <!-- Rendered by main.js based on the hash route -->
+    </main>
+  </div>
+
+  <!-- Cart drawer -->
+  <div class="cart-backdrop" id="cartBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Cart">
+    <div class="cart-drawer-header">
+      <h2 class="cart-drawer-title">Your Cart</h2>
+      <button class="cart-close" id="cartClose" type="button" aria-label="Close cart">×</button>
+    </div>
+
+    <div class="cart-empty" id="cartEmpty">
+      <p>Your cart is empty.</p>
+      <p class="cart-empty-sub">Browse the categories on the left to add packages.</p>
+    </div>
+
+    <div class="cart-items" id="cartItems"></div>
+
+    <div class="cart-footer" id="cartFooter" hidden>
+      <div class="cart-subtotal">
+        <span class="cart-subtotal-label">Subtotal</span>
+        <span class="cart-subtotal-value" id="cartSubtotal">—</span>
+      </div>
+      <button class="cart-checkout-btn" id="cartCheckoutBtn" type="button">Checkout</button>
+      <p class="cart-note">Payment processed securely by Tebex. All sales final.</p>
+    </div>
+  </aside>
+
+  <!-- Login modal -->
+  <div class="modal-backdrop" id="loginModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+      <h2 class="modal-title" id="loginModalTitle">Log in</h2>
+      <p class="modal-desc">Enter your Minecraft (Java) username so we can deliver purchases to you in-game.</p>
+      <input type="text" class="modal-input" id="loginUsername" autocomplete="off" maxlength="16">
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-secondary" id="loginCancelBtn" type="button">Cancel</button>
+        <button class="modal-btn modal-btn-primary" id="loginSubmitBtn" type="button">Log In</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+
+</body>
+</html>

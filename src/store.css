@@ -1,0 +1,138 @@
+/* Store rendering. Styles live inside main-content cards. */
+
+.store-subcategory-name {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+/* Product grid within a category (or subcategory). */
+.store-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card-soft);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  border-color: rgba(249, 115, 22, 0.85);
+  box-shadow: 0 0 30px rgba(249, 115, 22, 0.4);
+}
+
+.product-image {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.product-name {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: center;
+}
+
+.product-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  text-align: left;
+  flex: 1;
+  width: 100%;
+}
+
+/* Tebex descriptions arrive as HTML. Normalize spacing and reset any
+   inline font/color so the dark theme stays consistent. */
+.product-desc p {
+  margin: 0 0 0.55em;
+}
+.product-desc p:last-child {
+  margin-bottom: 0;
+}
+.product-desc ul,
+.product-desc ol {
+  margin: 0.4em 0 0.55em;
+  padding-left: 1.3em;
+}
+.product-desc li {
+  margin-bottom: 0.25em;
+}
+.product-desc li:last-child {
+  margin-bottom: 0;
+}
+.product-desc strong,
+.product-desc b {
+  color: #ffffff;
+  font-weight: 600;
+}
+.product-desc em,
+.product-desc i {
+  font-style: italic;
+}
+.product-desc a {
+  color: var(--accent-bright);
+  text-decoration: underline;
+}
+.product-desc br + br {
+  display: none;
+}
+/* Strip inline color/font sizing the Tebex editor sometimes injects so the
+   description still reads in the site's typography. */
+.product-desc [style*="color"],
+.product-desc [style*="font-size"],
+.product-desc [style*="background"] {
+  color: inherit !important;
+  background: transparent !important;
+  font-size: inherit !important;
+}
+
+.product-price {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fbbf24;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+}
+
+.buy-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--accent-bright);
+  border-radius: 9px;
+  background: rgba(0, 163, 255, 0.12);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.buy-btn:hover:not(:disabled) {
+  background: rgba(0, 163, 255, 0.25);
+  box-shadow: 0 0 15px rgba(0, 163, 255, 0.3);
+}
+
+.buy-btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
