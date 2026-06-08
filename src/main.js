@@ -44,7 +44,7 @@ const WIKI_URL = '';    // e.g. 'https://wiki.arcanasmp.com'
 // Featured package in the sidebar Store card. All keywords must appear in
 // the package name (case-insensitive). The first matching package wins. If
 // nothing matches, falls back to the first package found in the catalog.
-const FEATURED_PACKAGE_KEYWORDS = ['5', 'legendary', 'key'];
+const FEATURED_PACKAGE_KEYWORDS = ['patron', '1 month'];
 
 // Vote sites. Each entry shows up as a card on the Vote page. Add real URLs
 // from your registered server listings (planetminecraft, minecraftservers.org,
@@ -701,14 +701,9 @@ function makeEmojiIcon(cat) {
   return span;
 }
 
-// Categories that should render with an actual package image instead of an
-// emoji. Looks at the category's first package (or first child sub-package)
-// and returns its image URL. Used for Claim Chunks: the grass-block
-// art on the Bonus Claim Chunks package doubles as the category icon.
+// If the category (or one of its sub-packages) has a Tebex image, use that
+// as the sidebar icon instead of the keyword-emoji fallback.
 function packageImageForCategoryIcon(cat) {
-  const name = (cat.name || '').toLowerCase();
-  if (!name.includes('chunk')) return null;
-
   const pickFromList = (packages) => {
     if (!Array.isArray(packages)) return null;
     const withImage = packages.find((p) => p && p.image);
@@ -718,9 +713,7 @@ function packageImageForCategoryIcon(cat) {
   const direct = pickFromList(cat.packages);
   if (direct) return direct;
 
-  // Walk into subcategories too (Tebex returns these as separate entries
-  // with `.parent` pointing back at this category).
-  const subs = getTopLevelCategories();
+  const subs = getAllCategories();
   for (const c of subs) {
     if (c.parent && c.parent.id === cat.id) {
       const fromSub = pickFromList(c.packages);
