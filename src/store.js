@@ -131,10 +131,18 @@ export function renderCategoryView(main, category) {
   heading.className = 'main-card-heading';
   heading.textContent = category.name;
   header.appendChild(heading);
-  const sub = document.createElement('p');
-  sub.className = 'main-card-subheading';
-  sub.textContent = 'Add packages to your cart. Items in the cart are delivered to your Minecraft account on checkout.';
-  header.appendChild(sub);
+
+  if (category.description && category.description.trim()) {
+    const desc = document.createElement('div');
+    desc.className = 'category-description';
+    desc.innerHTML = category.description;
+    header.appendChild(desc);
+  } else {
+    const sub = document.createElement('p');
+    sub.className = 'main-card-subheading';
+    sub.textContent = 'Add packages to your cart. Items in the cart are delivered to your Minecraft account on checkout.';
+    header.appendChild(sub);
+  }
   main.appendChild(header);
 
   if (category.packages && category.packages.length) {

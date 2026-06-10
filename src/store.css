@@ -11,6 +11,77 @@
   margin-bottom: 1rem;
 }
 
+/* Tebex-authored category description rendered into the header card.
+   Mirrors the Tebex-HTML normalization used for product descriptions. */
+.category-description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-top: 0.25rem;
+}
+.category-description p {
+  margin: 0 0 0.6em;
+}
+.category-description p:last-child {
+  margin-bottom: 0;
+}
+.category-description h1,
+.category-description h2,
+.category-description h3,
+.category-description h4 {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0.75em 0 0.45em;
+  line-height: 1.25;
+}
+.category-description h1 { font-size: 1.4rem; }
+.category-description h2 { font-size: 1.25rem; }
+.category-description h3 { font-size: 1.1rem; }
+.category-description h4 { font-size: 1rem; }
+.category-description h1:first-child,
+.category-description h2:first-child,
+.category-description h3:first-child,
+.category-description h4:first-child {
+  margin-top: 0;
+}
+.category-description ul,
+.category-description ol {
+  margin: 0.4em 0 0.6em;
+  padding-left: 1.4em;
+}
+.category-description li {
+  margin-bottom: 0.3em;
+}
+.category-description li:last-child {
+  margin-bottom: 0;
+}
+.category-description strong,
+.category-description b {
+  color: #ffffff;
+  font-weight: 600;
+}
+.category-description em,
+.category-description i {
+  font-style: italic;
+}
+.category-description a {
+  color: var(--accent-bright);
+  text-decoration: underline;
+}
+.category-description br + br {
+  display: none;
+}
+/* Strip inline color/font/background the Tebex editor injects so the
+   description stays consistent with the dark theme. */
+.category-description [style*="color"],
+.category-description [style*="font-size"],
+.category-description [style*="background"] {
+  color: inherit !important;
+  background: transparent !important;
+  font-size: inherit !important;
+}
+
 /* Product grid within a category (or subcategory). Capped column max so a
    lone card stays card-sized instead of stretching across the row. */
 .store-category-grid {
