@@ -44,10 +44,6 @@
         </div>
       </a>
     </div>
-
-    <div class="topbar-account" id="topbarAccount">
-      <button class="login-btn" id="topbarLoginBtn" type="button">Log In</button>
-    </div>
     </div>
   </header>
 
@@ -59,9 +55,6 @@
     <div class="topnav-inner">
       <a href="#" class="topnav-item category-item" data-route="home">
         <span class="category-name">Home</span>
-      </a>
-      <a href="#" class="topnav-item category-item topnav-mobile-only" data-route="store" id="topnavStoreLink">
-        <span class="category-name">Store</span>
       </a>
       <a href="#rules" class="topnav-item category-item" data-route="rules">
         <span class="category-name">Rules</span>
@@ -80,47 +73,13 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-card store-card">
-        <div class="sidebar-heading">Store</div>
-        <nav class="categories-nav" id="categoriesNav">
-          <!-- Tebex categories injected by main.js -->
-        </nav>
-        <div class="store-featured" id="storeFeatured" hidden>
-          <div class="store-featured-label">Featured</div>
-          <div class="store-featured-card" id="storeFeaturedCard">
-            <!-- Featured package injected by main.js -->
-          </div>
-        </div>
-        <a class="store-browse-btn" id="storeBrowseBtn" href="#">Browse Store &rarr;</a>
-      </div>
-
-      <div class="sidebar-card login-card">
-        <div class="login-card-empty" id="loginCardEmpty">
-          <div class="login-card-empty-text">Not logged in</div>
-          <button class="login-card-btn" id="loginCardBtn" type="button">Log In</button>
-        </div>
-        <div class="login-card-user" id="loginCardUser" hidden>
-          <img class="login-card-head" id="loginCardHead" src="" alt="">
-          <div class="login-card-meta">
-            <span class="login-card-name" id="loginCardName"></span>
-            <button class="login-card-logout" id="loginCardLogout" type="button">Log out</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="sidebar-card sidebar-cart-card">
-        <div class="sidebar-cart-header">
-          <span class="sidebar-heading sidebar-heading--inline">Your Cart</span>
-          <span class="sidebar-cart-count-badge" id="sidebarCartBadge" hidden>0</span>
-        </div>
-        <div class="sidebar-cart-empty" id="sidebarCartEmpty">Cart is empty</div>
-        <div class="sidebar-cart-summary" id="sidebarCartSummary" hidden>
-          <div class="sidebar-cart-row">
-            <span class="sidebar-cart-count" id="sidebarCartCount">0 items</span>
-            <span class="sidebar-cart-total" id="sidebarCartTotal">—</span>
-          </div>
-          <button class="sidebar-cart-btn" id="sidebarCartBtn" type="button">View &amp; Checkout</button>
-        </div>
+      <div class="sidebar-card play-card">
+        <div class="sidebar-heading">Play Now</div>
+        <button class="play-ip copyable-ip" type="button" title="Click to copy the server IP">
+          <span class="play-ip-value">play.ArcanaSMP.com</span>
+          <span class="play-ip-hint">Click to copy</span>
+        </button>
+        <div class="play-note">Java Edition &middot; <span id="playVersion">&mdash;</span></div>
       </div>
 
       <div class="sidebar-card stats-card">
@@ -136,51 +95,32 @@
           <span class="stat-label">Server Age</span>
           <span class="stat-value" id="serverAge">—</span>
         </div>
+        <div class="stat-row">
+          <span class="stat-label">Discord</span>
+          <span class="stat-value" id="discordMembers">—</span>
+        </div>
       </div>
 
+      <div class="sidebar-card vote-sidebar-card">
+        <div class="sidebar-heading">Vote</div>
+        <p class="vote-sidebar-blurb">Vote daily to help us grow. Every vote rewards you in-game.</p>
+        <nav class="vote-sidebar-list" id="voteSidebarList">
+          <!-- Vote sites injected by main.js from VOTE_SITES -->
+        </nav>
+        <a class="vote-sidebar-btn" href="#vote">All vote sites &rarr;</a>
+      </div>
+
+      <div class="sidebar-card links-card">
+        <div class="sidebar-heading">Links</div>
+        <nav class="quick-links" id="quickLinks">
+          <!-- Injected by main.js from QUICK_LINKS -->
+        </nav>
+      </div>
     </aside>
 
     <main class="main-content" id="main-content">
       <!-- Rendered by main.js based on the hash route -->
     </main>
-  </div>
-
-  <!-- Cart drawer -->
-  <div class="cart-backdrop" id="cartBackdrop"></div>
-  <aside class="cart-drawer" id="cartDrawer" aria-label="Cart">
-    <div class="cart-drawer-header">
-      <h2 class="cart-drawer-title">Your Cart</h2>
-      <button class="cart-close" id="cartClose" type="button" aria-label="Close cart">×</button>
-    </div>
-
-    <div class="cart-empty" id="cartEmpty">
-      <p>Your cart is empty.</p>
-      <p class="cart-empty-sub">Browse the categories on the left to add packages.</p>
-    </div>
-
-    <div class="cart-items" id="cartItems"></div>
-
-    <div class="cart-footer" id="cartFooter" hidden>
-      <div class="cart-subtotal">
-        <span class="cart-subtotal-label">Subtotal</span>
-        <span class="cart-subtotal-value" id="cartSubtotal">—</span>
-      </div>
-      <button class="cart-checkout-btn" id="cartCheckoutBtn" type="button">Checkout</button>
-      <p class="cart-note">Payment processed securely by Tebex. All sales final.</p>
-    </div>
-  </aside>
-
-  <!-- Login modal -->
-  <div class="modal-backdrop" id="loginModal" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
-      <h2 class="modal-title" id="loginModalTitle">Log in</h2>
-      <p class="modal-desc">Enter your Minecraft (Java) username so we can deliver purchases to you in-game.</p>
-      <input type="text" class="modal-input" id="loginUsername" autocomplete="off" maxlength="16">
-      <div class="modal-actions">
-        <button class="modal-btn modal-btn-secondary" id="loginCancelBtn" type="button">Cancel</button>
-        <button class="modal-btn modal-btn-primary" id="loginSubmitBtn" type="button">Log In</button>
-      </div>
-    </div>
   </div>
 
   <script type="module" src="/src/main.js"></script>

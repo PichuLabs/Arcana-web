@@ -10,7 +10,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        store: resolve(__dirname, 'store.html'),
       },
       output: {
         // Hashed filenames so cached copies break on every deploy

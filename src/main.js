@@ -1,32 +1,15 @@
 import './style.css'
-import './store.css'
+import { createIcon } from './icons.js'
 
 // If we landed via the GitHub Pages 404.html fallback (any path other than
-// the SPA root or the legacy /store.html redirect stub), rewrite the URL bar
-// to "/" immediately, preserving the hash. No navigation, no flicker.
+// the SPA root), rewrite the URL bar to "/" immediately, preserving the hash.
+// No navigation, no flicker.
 (() => {
   const p = location.pathname;
-  if (p !== '/' && p !== '/index.html' && p !== '/store.html') {
+  if (p !== '/' && p !== '/index.html') {
     history.replaceState(null, '', '/' + location.search + location.hash);
   }
 })();
-import {
-  ensureCatalogLoaded,
-  getAllCategories,
-  getTopLevelCategories,
-  renderCategoryView,
-  slugFor,
-} from './store.js'
-import {
-  addToCart as cartAddToCart,
-  getCartCount,
-  onCartChange,
-  openDrawer as openCartDrawer,
-  closeDrawer as closeCartDrawer,
-  renderDrawer as renderCartDrawer,
-  renderSidebarCart,
-  startCheckout as startCartCheckout,
-} from './cart.js'
 
 // --- Configuration ---
 const SERVER_ADDRESS = 'play.ArcanaSMP.com';
@@ -34,17 +17,10 @@ const SERVER_START = new Date(2026, 3, 25); // April 25, 2026
 const ONLINE_UPDATE_INTERVAL = 120000; // 2 minutes
 const DISCORD_INVITE_CODE = 'pEzt5NzQa8';
 const DISCORD_UPDATE_INTERVAL = 300000; // 5 minutes
-const LOGIN_KEY = 'arcana_user';
-const AVATAR_SIZE = 64;
 
 // External URLs. Fill these in when the services are live.
 const LIVEMAP_URL = ''; // e.g. 'https://map.arcanasmp.com'
 const WIKI_URL = '';    // e.g. 'https://wiki.arcanasmp.com'
-
-// Featured package in the sidebar Store card. All keywords must appear in
-// the package name (case-insensitive). The first matching package wins. If
-// nothing matches, falls back to the first package found in the catalog.
-const FEATURED_PACKAGE_KEYWORDS = ['patron', '1 month'];
 
 // Vote sites. Each entry shows up as a card on the Vote page. Add real URLs
 // from your registered server listings (planetminecraft, minecraftservers.org,
@@ -58,6 +34,167 @@ const VOTE_SITES = [
   { name: 'Minecraft Buzz',        url: 'https://minecraft.buzz/server/21038',                                                          cooldown: '24h' },
 ];
 
+// Sidebar quick links. Live Map and Wiki are internal hash routes that
+// render a "coming soon" page until their URL constant above is filled in —
+// the `soon` flag is derived from that, so the badge disappears on its own
+// the moment a real URL is set.
+const QUICK_LINKS = [
+  { icon: 'discord', name: 'Discord',  href: `https://discord.gg/${DISCORD_INVITE_CODE}`, external: true },
+  { icon: 'map', name: 'Live Map', href: '#livemap', soon: !LIVEMAP_URL },
+  // No `soon` flag: the wiki route has real sections now, even though
+  // WIKI_URL (an external wiki) is still unset.
+  { icon: 'wiki', name: 'Wiki',     href: '#wiki' },
+];
+
+// The usual microtransaction gates on other servers, listed in the
+// no-pay-to-win card. Keep every entry to something a player can actually
+// obtain here by playing — the whole point is "paywalled there, earned
+// here", so anything that simply doesn't exist on this server (XP
+// multipliers, premium currency) belongs in the prose, not this list.
+const PAYWALLED_ELSEWHERE = [
+  'Ranks',
+  'Crate Keys',
+  'Powerful Items',
+  'Claim Blocks',
+  'Kits',
+  'Extra Homes',
+];
+
+// What the server offers, shown as a grid on the Home page. Edit freely —
+// the wording below was drafted from the server MOTD, so tighten it to match
+// how each system actually works in-game.
+const FEATURES = [
+  {
+    icon: 'economy',
+    title: 'Economy',
+    description: 'A player-driven market with shops and a real currency. Money has a purpose beyond the leaderboard.',
+  },
+  {
+    icon: 'jobs',
+    title: 'Jobs',
+    description: 'Get paid for the work you already enjoy - mining, farming, fishing, building. Pick a profession and earn as you play.',
+  },
+  {
+    icon: 'lands',
+    title: 'Lands',
+    description: 'Claim your territory so your builds stay yours. Add trusted friends and build together.',
+  },
+  {
+    icon: 'pets',
+    title: 'Custom Pets',
+    description: 'Companion pets built uniquely for ArcanaSMP. Collect and raise them as you play.',
+  },
+  {
+    icon: 'rpg',
+    title: 'Custom RPG',
+    description: 'RPG systems layered over survival, so long-term play keeps opening up new things to chase.',
+  },
+  {
+    icon: 'ranks',
+    title: 'Ranks',
+    description: 'Work your way up through ranks as you progress, unlocking perks along the way.',
+  },
+];
+
+// Wiki sections. This is a living document — `items` is what's written so
+// far, `todo` is what still needs filling in, and both render, so a
+// half-finished section is useful instead of blank. Set status to 'ready'
+// once a section no longer has gaps; anything else shows a WIP badge.
+//
+// Everything below is drawn from what the site already states (the rules,
+// the roadmap, the feature list, the vote pages). Fill in the `todo` lines
+// with real commands and numbers — those are the parts only you can write.
+const WIKI_SECTIONS = [
+  {
+    icon: 'block',
+    title: 'Getting Started',
+    status: 'ready',
+    summary: 'What you need for your first session.',
+    items: [
+      'ArcanaSMP runs on Minecraft: Java Edition. Add the server address shown in the sidebar and connect.',
+      'The version we run is listed on the Play Now card — match it in your launcher profile.',
+      'Read the Rules before you build. They are short, and they are enforced.',
+      'Join the Discord for announcements, support, and to find people to build with.',
+    ],
+  },
+  {
+    icon: 'economy',
+    title: 'Economy & Jobs',
+    summary: 'How money works and how to earn it.',
+    items: [
+      'Pick a profession and get paid for work you already do: mining, farming, fishing, building.',
+      'Money is spent in the player-driven market and in the daily auctions.',
+    ],
+    todo: ['Full job list and payout rates', 'Shop and market commands', 'How to set up your own shop'],
+  },
+  {
+    icon: 'lands',
+    title: 'Lands & Claiming',
+    summary: 'Protecting your builds and sharing them with friends.',
+    items: [
+      'Claim territory so your builds stay yours — unclaimed builds are not protected.',
+      'Trusted friends can be added to a claim so you can build together.',
+    ],
+    todo: ['Claim commands and how to expand a claim', 'How to earn more claim blocks', 'Trust levels and permission flags'],
+  },
+  {
+    icon: 'key',
+    title: 'Crates & Keys',
+    summary: 'Keys are earned in-game. They have never been for sale.',
+    items: [
+      'Vote parties drop keys for everyone online when the server hits a vote goal.',
+      'Daily quests reward keys for completing objectives.',
+      'Daily parkour and AFK rewards both scale with your rank.',
+      'Keys also drop from normal play, and Legendary Keys show up in the daily auctions.',
+    ],
+    todo: ['Crate list and full reward tables', 'Drop rates per crate tier'],
+  },
+  {
+    icon: 'ranks',
+    title: 'Ranks & Progression',
+    summary: 'Every rank is earned by playing. None are purchasable.',
+    items: [
+      'Ranks come from progression and playtime, not from a checkout.',
+      'Higher ranks increase daily parkour and AFK rewards.',
+    ],
+    todo: ['Full rank ladder and requirements', 'Perks unlocked at each rank'],
+  },
+  {
+    icon: 'rpg',
+    title: 'Custom Systems',
+    summary: 'The plugins built specifically for this server.',
+    items: [
+      'Custom skills, RPG progression, and companion pets are developed in-house for ArcanaSMP.',
+      'These systems are why progression here does not match any other server.',
+    ],
+    todo: ['Skill list and how each levels', 'Pet collection and raising guide', 'RPG stat reference'],
+  },
+  {
+    icon: 'star',
+    title: 'Voting',
+    status: 'ready',
+    summary: 'Free, takes a minute, and rewards you in-game.',
+    items: [
+      'Five listing sites are linked in the sidebar and on the Vote page.',
+      'Each site can be voted on once every 24 hours, so you can vote five times a day.',
+      'Votes reward you automatically in-game and count toward server-wide vote parties.',
+    ],
+  },
+  {
+    icon: 'help',
+    title: 'FAQ',
+    status: 'ready',
+    summary: 'The questions we get most often.',
+    items: [
+      'Is there a store? No. Nothing on this server is for sale, and nothing gives a paid advantage.',
+      'Can I donate? Yes, entirely optionally — it earns you nothing in-game by design.',
+      'Can I use an alt account? One alt is allowed for AFK and chunk-loading. Automated chunk loading counts as an exploit.',
+      'Are macros or autoclickers allowed? No. That includes autofishing.',
+      'Bedrock Edition? Not supported — ArcanaSMP is Java Edition only.',
+    ],
+  },
+];
+
 // Roadmap items. Edit freely. Status drives the badge color:
 //   'inprogress' (blue), 'funding' (orange, actively needs support),
 //   'planned' (gold), 'considering' (gray), 'done' (green).
@@ -67,9 +204,9 @@ const VOTE_SITES = [
 // the description), and an optional `funding` object that shows a money tag.
 const ROADMAP = [
   {
-    status: 'inprogress',
+    status: 'done',
     title: 'More ways to attain keys',
-    description: "The custom content in our crates is meant to be attained by players, so we want more chances to roll them. We're actively expanding this, with more planned.",
+    description: "The custom content in our crates is meant to be attained by players, so we added more chances to roll them across the systems players already use.",
     progress: [
       'Vote parties with generous key drops',
       'Daily quests now give generous key rewards',
@@ -79,7 +216,7 @@ const ROADMAP = [
     ],
   },
   {
-    status: 'planned',
+    status: 'done',
     title: 'Daily Auctions',
     description: "A system that puts up daily auctions for items players want. The whole server can bid, giving money more of a use and acting as a gold sink. Items like Legendary Keys, but kept modest: the server shouldn't be about having the most money.",
   },
@@ -99,14 +236,9 @@ const ROADMAP = [
     description: "Our referral plugin was installed a while ago but never fully configured. Once it's live, both the referrer and the referred get rewarded. The referred player keeps earning extra key prizes as they hit playtime milestones, to welcome them onto the server.",
   },
   {
-    status: 'funding',
-    title: 'Server hardware upgrade',
-    description: "We want to upgrade to better, dedicated hardware to give our server the performance it needs to support more content and growth.",
-  },
-  {
     status: 'inprogress',
     title: 'Website redesign',
-    description: "Refreshing the site you're on now: clearer navigation, a real store experience, and a transparent roadmap.",
+    description: "Refreshing the site you're on now: clearer navigation and a transparent roadmap.",
   },
 ];
 
@@ -119,20 +251,34 @@ const ROADMAP_STATUS_LABELS = {
 };
 
 // --- Server status ---
+// mcstatus reports the server software alongside the version ("Paper 26.1.2").
+// Players only care about the number they need to connect with, so drop a
+// leading software name when one is present.
+const SERVER_SOFTWARE = /^(paper|spigot|purpur|bukkit|craftbukkit|fabric|forge|folia|velocity|waterfall|bungeecord)\s+/i;
+
+function cleanVersion(raw) {
+  if (!raw) return null;
+  return raw.replace(SERVER_SOFTWARE, '').trim() || raw;
+}
+
 function updateOnline() {
   fetch('https://api.mcstatus.io/v2/status/java/' + SERVER_ADDRESS)
     .then((res) => res.json())
     .then((data) => {
       const sidebarEl = document.getElementById('onlineValue');
       const pillEl = document.getElementById('pillOnlineCount');
+      const versionEl = document.getElementById('playVersion');
       if (data.online) {
         const cur = data.players.online;
         const max = data.players.max;
         if (sidebarEl) sidebarEl.innerHTML = cur + ' <span class="cap">/ ' + max + '</span>';
         if (pillEl) pillEl.textContent = cur + ' / ' + max;
+        const version = cleanVersion(data.version && data.version.name_clean);
+        if (versionEl) versionEl.textContent = version || '—';
       } else {
         if (sidebarEl) sidebarEl.innerHTML = '0 <span class="cap">/ —</span>';
         if (pillEl) pillEl.textContent = 'offline';
+        if (versionEl) versionEl.textContent = '—';
       }
     })
     .catch(() => {
@@ -150,19 +296,29 @@ function updateServerAge() {
   if (el) el.textContent = days + (days === 1 ? ' day' : ' days');
 }
 
-// --- Discord member count (via the invite-counts endpoint) ---
+// --- Discord counts (via the invite-counts endpoint) ---
+// One request feeds both the topbar pill (online now) and the sidebar stats
+// row (total members).
 function updateDiscordCount() {
   fetch(`https://discord.com/api/v10/invites/${DISCORD_INVITE_CODE}?with_counts=true`)
     .then((res) => res.json())
     .then((data) => {
       const el = document.getElementById('discordOnlineCount');
-      if (!el) return;
-      const count = data && data.approximate_presence_count;
-      el.textContent = typeof count === 'number' ? count.toLocaleString() : '—';
+      const membersEl = document.getElementById('discordMembers');
+      const online = data && data.approximate_presence_count;
+      const members = data && data.approximate_member_count;
+      if (el) el.textContent = typeof online === 'number' ? online.toLocaleString() : '—';
+      if (membersEl) {
+        membersEl.textContent = typeof members === 'number'
+          ? members.toLocaleString() + ' members'
+          : '—';
+      }
     })
     .catch(() => {
       const el = document.getElementById('discordOnlineCount');
+      const membersEl = document.getElementById('discordMembers');
       if (el) el.textContent = '—';
+      if (membersEl) membersEl.textContent = '—';
     });
 }
 
@@ -212,112 +368,6 @@ document.addEventListener('click', (e) => {
   copyIP(el);
 });
 
-// --- Login (stored in localStorage; Minecraft head avatar from mc-heads.net) ---
-export function getStoredUser() {
-  try {
-    return JSON.parse(localStorage.getItem(LOGIN_KEY));
-  } catch (_) {
-    return null;
-  }
-}
-
-function setStoredUser(username) {
-  const user = {
-    username,
-    head: `https://mc-heads.net/avatar/${encodeURIComponent(username)}/${AVATAR_SIZE}`,
-  };
-  localStorage.setItem(LOGIN_KEY, JSON.stringify(user));
-  return user;
-}
-
-function clearStoredUser() {
-  localStorage.removeItem(LOGIN_KEY);
-}
-
-function renderLoginState() {
-  const user = getStoredUser();
-
-  const topbarLoginBtn = document.getElementById('topbarLoginBtn');
-
-  const cardEmpty = document.getElementById('loginCardEmpty');
-  const cardUser = document.getElementById('loginCardUser');
-  const cardHead = document.getElementById('loginCardHead');
-  const cardName = document.getElementById('loginCardName');
-
-  if (user) {
-    topbarLoginBtn.hidden = true;
-
-    cardEmpty.hidden = true;
-    cardUser.hidden = false;
-    cardHead.src = user.head;
-    cardHead.alt = user.username;
-    cardName.textContent = user.username;
-  } else {
-    topbarLoginBtn.hidden = false;
-
-    cardEmpty.hidden = false;
-    cardUser.hidden = true;
-  }
-}
-
-// When the login modal is opened via window.requestLogin() (e.g., from the
-// cart checkout flow), this Promise's resolver is stored here so that
-// submitLogin / closeLoginModal can fulfill it. null otherwise.
-let pendingLoginResolve = null;
-
-function openLoginModal() {
-  const modal = document.getElementById('loginModal');
-  const input = document.getElementById('loginUsername');
-  modal.hidden = false;
-  input.value = '';
-  setTimeout(() => input.focus(), 30);
-}
-
-function closeLoginModal() {
-  document.getElementById('loginModal').hidden = true;
-  if (pendingLoginResolve) {
-    const resolve = pendingLoginResolve;
-    pendingLoginResolve = null;
-    resolve(null);
-  }
-}
-
-function submitLogin() {
-  const input = document.getElementById('loginUsername');
-  const name = (input.value || '').trim();
-  if (!name) return;
-  setStoredUser(name);
-  document.getElementById('loginModal').hidden = true;
-  renderLoginState();
-  if (pendingLoginResolve) {
-    const resolve = pendingLoginResolve;
-    pendingLoginResolve = null;
-    resolve(name);
-  }
-}
-
-// Exposed for the cart checkout flow: opens the same styled modal as the
-// sidebar Log In button and resolves with the username (or null if the user
-// cancels). Replaces the old window.prompt() fallback in cart.js.
-window.requestLogin = function requestLogin() {
-  return new Promise((resolve) => {
-    // If something else already had a pending resolver, cancel it (resolve null)
-    // before opening fresh.
-    if (pendingLoginResolve) {
-      const stale = pendingLoginResolve;
-      pendingLoginResolve = null;
-      stale(null);
-    }
-    pendingLoginResolve = resolve;
-    openLoginModal();
-  });
-};
-
-function logout() {
-  clearStoredUser();
-  renderLoginState();
-}
-
 // --- Hash router ---
 const STATIC_ROUTES = new Set(['home', 'livemap', 'rules', 'wiki', 'vote', 'roadmap']);
 
@@ -325,10 +375,6 @@ function currentRoute() {
   const hash = location.hash.replace(/^#/, '');
   if (!hash) return { name: 'home' };
   if (STATIC_ROUTES.has(hash)) return { name: hash };
-  const parts = hash.split('/');
-  if (parts[0] === 'store' && parts[1]) {
-    return { name: 'category', slug: parts[1] };
-  }
   return { name: 'home' };
 }
 
@@ -336,13 +382,6 @@ function setActiveNav(routeKey) {
   document.querySelectorAll('.category-item').forEach((item) => {
     item.classList.toggle('active', item.dataset.route === routeKey);
   });
-  // The mobile topnav Store link uses data-route="store" so it highlights
-  // whenever the current route is any store/<slug> category.
-  const storeLink = document.querySelector('[data-route="store"]');
-  if (storeLink) {
-    const onStoreRoute = location.hash.replace(/^#/, '').indexOf('store/') === 0;
-    storeLink.classList.toggle('active', onStoreRoute);
-  }
 }
 
 function renderHome(main) {
@@ -355,6 +394,7 @@ function renderHome(main) {
     <div class="home-hero-eyebrow">Welcome to Arcana</div>
     <h1 class="home-hero-title">A chill Minecraft server<br>built for adults.</h1>
     <div class="home-hero-tags">
+      <span class="home-hero-tag home-hero-tag--nop2w">Zero Pay-to-Win</span>
       <span class="home-hero-tag home-hero-tag--worldgen">Custom World Gen</span>
       <span class="home-hero-tag home-hero-tag--skills">Custom Skills</span>
       <span class="home-hero-tag home-hero-tag--rpg">Custom RPG</span>
@@ -362,39 +402,72 @@ function renderHome(main) {
       <span class="home-hero-tag home-hero-tag--balance">Balanced Progression</span>
       <span class="home-hero-tag home-hero-tag--chill">Chill Vibes</span>
     </div>
-    <div class="home-hero-cta">
-      <div class="mini-pill copyable-ip" title="Click to copy IP">
-        <div class="mini-pill-text">
-          <span class="mini-pill-title">Play Now</span>
-          <span class="mini-pill-value">play.ArcanaSMP.com</span>
-        </div>
-      </div>
-      <a class="mini-pill discord-mini-pill" href="https://discord.gg/pEzt5NzQa8" target="_blank" rel="noopener">
-        <span class="mini-pill-icon discord-mini-icon">
-          <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-        </span>
-        <div class="mini-pill-text">
-          <span class="mini-pill-title">Join</span>
-          <span class="mini-pill-value">Discord</span>
-        </div>
-      </a>
-    </div>
   `;
   main.appendChild(hero);
 
-  // About
+  // No-store / no-pay-to-win callout. Sits directly under the hero because
+  // it's the single biggest differentiator for players arriving from a
+  // server list, where most listings are pay-to-win.
+  const noP2W = document.createElement('section');
+  noP2W.className = 'main-card nop2w-card';
+  noP2W.innerHTML = `
+    <div class="nop2w-badge">No Store &middot; Zero Pay-to-Win</div>
+    <h2 class="nop2w-title">Nothing on this server is for sale.</h2>
+    <div class="main-card-body">
+      <p>We removed the store completely. No checkout, no packages, no premium currency, no &ldquo;supporter&rdquo; tier that quietly hands out an edge. <strong>There is nothing to buy here at any price</strong> - and that's a permanent design decision, not a phase.</p>
+    </div>
+    <p class="nop2w-lead">What other servers sell as pay-to-win perks, we make players earn:</p>
+    <ul class="nop2w-grid">
+      ${PAYWALLED_ELSEWHERE.map((item) => `<li class="nop2w-box">${item}</li>`).join('')}
+    </ul>
+    <div class="main-card-body">
+      <p><strong>Nobody can spend their way past you</strong>, out-gear you, or skip a grind you did. No wallet-fed head start, no boosted XP curve, no crate luck you can top up. The playing field is identical for everyone who logs in.</p>
+      <p class="nop2w-support">Donating is optional, earns you nothing in-game, and is genuinely appreciated. Every contribution goes straight to hosting and running costs.</p>
+    </div>
+  `;
+  main.appendChild(noP2W);
+
+  // About the server. The feature grid lives inside this same card rather
+  // than in its own: the prose introduces the server and the grid gives the
+  // specifics, so splitting them into two bordered blocks just added a
+  // boundary in the middle of one thought.
   const about = document.createElement('section');
   about.className = 'main-card';
   about.innerHTML = `
-    <h1 class="main-card-heading">About the server</h1>
     <p class="main-card-subheading">A small, community-run Minecraft world. Not a business.</p>
     <div class="main-card-body">
       <p>ArcanaSMP is a long-term survival multiplayer server built around <strong>balanced progression and chill vibes</strong>. We run <strong>custom plugins developed uniquely for our server</strong>, so the experience is one you won't find anywhere else. We're a place to mine, fish, farm, build, and just vibe with other chill adults.</p>
-      <p>Every dollar from the store goes straight back into the server: hosting, plugins, events, development, and assets/art costs.</p>
     </div>
   `;
-  main.appendChild(about);
 
+  const grid = document.createElement('div');
+  grid.className = 'feature-grid';
+
+  FEATURES.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'feature-card';
+
+    const icon = document.createElement('div');
+    icon.className = 'feature-icon';
+    const iconSvg = createIcon(item.icon);
+    if (iconSvg) icon.appendChild(iconSvg);
+    card.appendChild(icon);
+
+    const title = document.createElement('div');
+    title.className = 'feature-title';
+    title.textContent = item.title;
+    card.appendChild(title);
+
+    const desc = document.createElement('div');
+    desc.className = 'feature-desc';
+    desc.textContent = item.description;
+    card.appendChild(desc);
+
+    grid.appendChild(card);
+  });
+
+  about.appendChild(grid);
+  main.appendChild(about);
 }
 
 function renderLiveMap(main) {
@@ -497,7 +570,8 @@ function renderVote(main) {
 
     const icon = document.createElement('div');
     icon.className = 'vote-card-icon';
-    icon.textContent = '⭐';
+    const voteStar = createIcon('star');
+    if (voteStar) icon.appendChild(voteStar);
     card.appendChild(icon);
 
     const meta = document.createElement('div');
@@ -596,39 +670,99 @@ function renderRoadmap(main) {
 function renderWiki(main) {
   main.innerHTML = '';
 
-  const card = document.createElement('section');
-  card.className = 'main-card';
+  const header = document.createElement('section');
+  header.className = 'main-card';
+  header.innerHTML = `
+    <h1 class="main-card-heading">Wiki</h1>
+    <p class="main-card-subheading">Guides and reference for playing on ArcanaSMP.</p>
+    <div class="main-card-body">
+      <p>This is a work in progress. Sections marked <span class="wiki-badge wiki-badge--wip">WIP</span> are partly written &mdash; what's documented so far is below each one, along with what still needs filling in. If something here is wrong or missing, tell us in <a href="https://discord.gg/${DISCORD_INVITE_CODE}" target="_blank" rel="noopener">Discord</a>.</p>
+    </div>
+    ${WIKI_URL ? `<a class="external-link-btn" href="${WIKI_URL}" target="_blank" rel="noopener">Open the full wiki &rarr;</a>` : ''}
+  `;
+  main.appendChild(header);
 
-  if (WIKI_URL) {
-    card.innerHTML = `
-      <h1 class="main-card-heading">Wiki</h1>
-      <p class="main-card-subheading">Server lore, build guides, FAQs, and reference material.</p>
-      <a class="external-link-btn" href="${WIKI_URL}" target="_blank" rel="noopener">Open Wiki &rarr;</a>
-    `;
-  } else {
-    card.innerHTML = `
-      <h1 class="main-card-heading">Wiki</h1>
-      <p class="main-card-subheading">Coming soon.</p>
-      <div class="main-card-body">
-        <p>Documentation, lore, build guides, and FAQs are being put together. Hop in Discord while you wait.</p>
-      </div>
-    `;
-  }
-  main.appendChild(card);
+  const wrap = document.createElement('section');
+  wrap.className = 'main-card';
+
+  const grid = document.createElement('div');
+  grid.className = 'wiki-grid';
+
+  WIKI_SECTIONS.forEach((section) => {
+    const card = document.createElement('article');
+    card.className = 'wiki-section';
+
+    const head = document.createElement('div');
+    head.className = 'wiki-section-head';
+
+    const icon = document.createElement('span');
+    icon.className = 'wiki-section-icon';
+    const svg = createIcon(section.icon);
+    if (svg) icon.appendChild(svg);
+    head.appendChild(icon);
+
+    const title = document.createElement('h2');
+    title.className = 'wiki-section-title';
+    title.textContent = section.title;
+    head.appendChild(title);
+
+    const badge = document.createElement('span');
+    const ready = section.status === 'ready';
+    badge.className = `wiki-badge wiki-badge--${ready ? 'ready' : 'wip'}`;
+    badge.textContent = ready ? 'Ready' : 'WIP';
+    head.appendChild(badge);
+
+    card.appendChild(head);
+
+    if (section.summary) {
+      const summary = document.createElement('p');
+      summary.className = 'wiki-section-summary';
+      summary.textContent = section.summary;
+      card.appendChild(summary);
+    }
+
+    if (section.items && section.items.length) {
+      const list = document.createElement('ul');
+      list.className = 'wiki-list';
+      section.items.forEach((text) => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        list.appendChild(li);
+      });
+      card.appendChild(list);
+    }
+
+    if (section.todo && section.todo.length) {
+      const todo = document.createElement('div');
+      todo.className = 'wiki-todo';
+
+      const label = document.createElement('div');
+      label.className = 'wiki-todo-label';
+      label.textContent = 'Still to document';
+      todo.appendChild(label);
+
+      const list = document.createElement('ul');
+      list.className = 'wiki-todo-list';
+      section.todo.forEach((text) => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        list.appendChild(li);
+      });
+      todo.appendChild(list);
+
+      card.appendChild(todo);
+    }
+
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+  main.appendChild(wrap);
 }
 
-async function applyRoute() {
+function applyRoute() {
   const main = document.getElementById('main-content');
   if (!main) return;
-
-  // Show a quick loading shell while the catalog is fetched the first time.
-  let loadFailed = false;
-  try {
-    await ensureCatalogLoaded();
-  } catch (err) {
-    console.error(err);
-    loadFailed = true;
-  }
 
   const route = currentRoute();
   if (route.name === 'home') {
@@ -649,228 +783,75 @@ async function applyRoute() {
   } else if (route.name === 'roadmap') {
     renderRoadmap(main);
     setActiveNav('roadmap');
-  } else if (route.name === 'category') {
-    const cat = getTopLevelCategories().find((c) => slugFor(c) === route.slug);
-    if (cat) {
-      renderCategoryView(main, cat);
-      setActiveNav(route.slug);
-    } else {
-      // Unknown slug. Bounce home.
-      history.replaceState({}, '', location.pathname);
-      renderHome(main);
-      setActiveNav('home');
-    }
-  }
-
-  if (loadFailed && route.name === 'category') {
-    main.innerHTML = '<div class="main-card"><p>Could not load the store. Please try again later.</p></div>';
-  }
-
-  // Handle purchase return banner.
-  const params = new URLSearchParams(location.search);
-  if (params.get('purchase') === 'complete') {
-    const banner = document.createElement('div');
-    banner.className = 'main-card';
-    banner.innerHTML = '<p>Thanks for your purchase! Your items will be delivered in-game shortly.</p>';
-    main.prepend(banner);
-    history.replaceState({}, '', location.pathname + location.hash);
-  } else if (params.get('purchase') === 'cancel') {
-    const banner = document.createElement('div');
-    banner.className = 'main-card';
-    banner.innerHTML = '<p>Checkout cancelled.</p>';
-    main.prepend(banner);
-    history.replaceState({}, '', location.pathname + location.hash);
   }
 
   window.scrollTo(0, 0);
 }
 
-function categoryIcon(cat) {
-  const n = (cat.name || '').toLowerCase();
-  if (n.includes('key')) return '🔑';
-  if (n.includes('chunk')) return '🗺';
-  if (n.includes('cosmetic')) return '✨';
-  if (n.includes('rank')) return '⭐';
-  return '◆';
-}
-
-function makeEmojiIcon(cat) {
-  const span = document.createElement('span');
-  span.className = 'category-icon';
-  span.textContent = categoryIcon(cat);
-  return span;
-}
-
-// If the category (or one of its sub-packages) has a Tebex image, use that
-// as the sidebar icon instead of the keyword-emoji fallback.
-function packageImageForCategoryIcon(cat) {
-  const pickFromList = (packages) => {
-    if (!Array.isArray(packages)) return null;
-    const withImage = packages.find((p) => p && p.image);
-    return withImage ? withImage.image : null;
-  };
-
-  const direct = pickFromList(cat.packages);
-  if (direct) return direct;
-
-  const subs = getAllCategories();
-  for (const c of subs) {
-    if (c.parent && c.parent.id === cat.id) {
-      const fromSub = pickFromList(c.packages);
-      if (fromSub) return fromSub;
-    }
-  }
-  return null;
-}
-
-async function populateSidebarNav() {
-  try {
-    await ensureCatalogLoaded();
-  } catch (_) {
-    return;
-  }
-  const nav = document.getElementById('categoriesNav');
+// --- Sidebar quick links ---
+function populateQuickLinks() {
+  const nav = document.getElementById('quickLinks');
   if (!nav) return;
   nav.innerHTML = '';
 
-  const cats = getTopLevelCategories();
-  cats.forEach((cat) => {
+  QUICK_LINKS.forEach((link) => {
     const a = document.createElement('a');
-    a.className = 'category-item';
-    const slug = slugFor(cat);
-    a.href = '#store/' + slug;
-    a.dataset.route = slug;
-
-    const iconImageUrl = packageImageForCategoryIcon(cat);
-    if (iconImageUrl) {
-      const img = document.createElement('img');
-      img.className = 'category-icon category-icon-img';
-      img.src = iconImageUrl;
-      img.alt = '';
-      img.loading = 'lazy';
-      img.addEventListener('error', () => img.replaceWith(makeEmojiIcon(cat)));
-      a.appendChild(img);
-    } else {
-      a.appendChild(makeEmojiIcon(cat));
+    a.className = 'quick-link';
+    a.href = link.href;
+    if (link.external) {
+      a.target = '_blank';
+      a.rel = 'noopener';
     }
 
+    const icon = document.createElement('span');
+    icon.className = 'quick-link-icon';
+    const linkSvg = createIcon(link.icon);
+    if (linkSvg) icon.appendChild(linkSvg);
+    a.appendChild(icon);
+
     const name = document.createElement('span');
-    name.className = 'category-name';
-    name.textContent = cat.name;
+    name.className = 'quick-link-name';
+    name.textContent = link.name;
     a.appendChild(name);
+
+    if (link.soon) {
+      const badge = document.createElement('span');
+      badge.className = 'quick-link-soon';
+      badge.textContent = 'Soon';
+      a.appendChild(badge);
+    }
 
     nav.appendChild(a);
   });
-
-  // Wire the Browse Store button + mobile topnav Store link to the first
-  // category, and populate the featured slot.
-  if (cats.length) {
-    const firstHref = '#store/' + slugFor(cats[0]);
-    const browseBtn = document.getElementById('storeBrowseBtn');
-    if (browseBtn) browseBtn.href = firstHref;
-    const topnavStoreLink = document.getElementById('topnavStoreLink');
-    if (topnavStoreLink) topnavStoreLink.href = firstHref;
-    renderFeaturedPackage();
-  }
-
-  // Re-apply route now that nav exists so the active highlight lands.
-  const route = currentRoute();
-  setActiveNav(route.name === 'home' ? 'home' : route.slug);
 }
 
-function pickFeaturedPackage() {
-  // Flatten every package across every category (including subcategories).
-  const allPackages = getAllCategories().flatMap((c) => c.packages || []);
+// --- Sidebar vote list ---
+// Same VOTE_SITES source as the Vote page, so the two never drift apart.
+function populateVoteSidebar() {
+  const list = document.getElementById('voteSidebarList');
+  if (!list) return;
+  list.innerHTML = '';
 
-  // First pass: a package whose name contains all of the configured keywords.
-  if (FEATURED_PACKAGE_KEYWORDS.length) {
-    const matched = allPackages.find((p) => {
-      if (!p || !p.name) return false;
-      const name = p.name.toLowerCase();
-      return FEATURED_PACKAGE_KEYWORDS.every((kw) => name.includes(kw.toLowerCase()));
-    });
-    if (matched) return matched;
-  }
+  VOTE_SITES.forEach((site) => {
+    const a = document.createElement('a');
+    a.className = 'vote-sidebar-item';
+    a.href = site.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
 
-  // Fallback: first package in the catalog.
-  return allPackages.find((p) => p && p.id) || null;
-}
+    const star = document.createElement('span');
+    star.className = 'vote-sidebar-star';
+    const starSvg = createIcon('star');
+    if (starSvg) star.appendChild(starSvg);
+    a.appendChild(star);
 
-function renderFeaturedPackage() {
-  const wrap = document.getElementById('storeFeatured');
-  const slot = document.getElementById('storeFeaturedCard');
-  if (!wrap || !slot) return;
+    const name = document.createElement('span');
+    name.className = 'vote-sidebar-name';
+    name.textContent = site.name;
+    a.appendChild(name);
 
-  const pkg = pickFeaturedPackage();
-  if (!pkg) {
-    wrap.hidden = true;
-    return;
-  }
-  wrap.hidden = false;
-  slot.innerHTML = '';
-
-  const row = document.createElement('div');
-  row.className = 'store-featured-row';
-
-  if (pkg.image) {
-    const img = document.createElement('img');
-    img.className = 'store-featured-img';
-    img.src = pkg.image;
-    img.alt = '';
-    img.loading = 'lazy';
-    img.addEventListener('error', () => {
-      img.classList.add('store-featured-img--placeholder');
-      img.removeAttribute('src');
-    });
-    row.appendChild(img);
-  } else {
-    const ph = document.createElement('div');
-    ph.className = 'store-featured-img store-featured-img--placeholder';
-    row.appendChild(ph);
-  }
-
-  const meta = document.createElement('div');
-  meta.className = 'store-featured-meta';
-  const name = document.createElement('div');
-  name.className = 'store-featured-name';
-  name.textContent = pkg.name;
-  meta.appendChild(name);
-
-  const price = document.createElement('div');
-  price.className = 'store-featured-price';
-  try {
-    price.textContent = new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: pkg.currency || 'USD',
-    }).format(pkg.total_price ?? pkg.base_price ?? 0);
-  } catch (_) {
-    price.textContent = (pkg.currency || 'USD') + ' ' + (pkg.total_price ?? pkg.base_price ?? 0);
-  }
-  meta.appendChild(price);
-
-  row.appendChild(meta);
-  slot.appendChild(row);
-
-  const add = document.createElement('button');
-  add.className = 'store-featured-add';
-  add.type = 'button';
-  add.textContent = 'Add to Cart';
-  add.addEventListener('click', () => {
-    addToCartFromSidebar(pkg, add);
+    list.appendChild(a);
   });
-  slot.appendChild(add);
-}
-
-function addToCartFromSidebar(pkg, btn) {
-  // Cart is imported at the top of this module.
-  cartAddToCart(pkg);
-  const original = btn.textContent;
-  btn.textContent = 'Added ✓';
-  btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = original;
-    btn.disabled = false;
-  }, 1200);
 }
 
 // --- Wiring ---
@@ -880,17 +861,24 @@ updateServerAge();
 updateDiscordCount();
 setInterval(updateDiscordCount, DISCORD_UPDATE_INTERVAL);
 
-document.getElementById('topbarLoginBtn').addEventListener('click', openLoginModal);
-document.getElementById('loginCardBtn').addEventListener('click', openLoginModal);
-document.getElementById('loginCardLogout').addEventListener('click', logout);
-document.getElementById('loginCancelBtn').addEventListener('click', closeLoginModal);
-document.getElementById('loginSubmitBtn').addEventListener('click', submitLogin);
-document.getElementById('loginUsername').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') submitLogin();
-});
-document.getElementById('loginModal').addEventListener('click', (e) => {
-  if (e.target.id === 'loginModal') closeLoginModal();
-});
+// --- Sticky sidebar offset ---
+// The .topbar is static and scrolls away; .topnav is what stays pinned, so
+// the sticky sidebar has to clear the nav's height, not the topbar's. Height
+// is measured rather than hard-coded because web fonts land after first
+// paint and the nav can wrap at some widths.
+const topnavEl = document.querySelector('.topnav');
+
+function syncTopnavHeight() {
+  if (!topnavEl) return;
+  document.documentElement.style.setProperty('--topnav-height', topnavEl.offsetHeight + 'px');
+}
+
+syncTopnavHeight();
+if (topnavEl && window.ResizeObserver) {
+  new ResizeObserver(syncTopnavHeight).observe(topnavEl);
+} else {
+  window.addEventListener('resize', syncTopnavHeight);
+}
 
 // --- Mobile sidebar drawer ---
 const sidebarEl = document.querySelector('.sidebar');
@@ -913,37 +901,8 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeSidebar();
 });
 
-// --- Cart wiring ---
-const sidebarCartCard = document.querySelector('.sidebar-cart-card');
-
-function bumpSidebarCart() {
-  if (!sidebarCartCard) return;
-  sidebarCartCard.classList.remove('bump');
-  // Restart the animation by forcing a reflow.
-  void sidebarCartCard.offsetWidth;
-  sidebarCartCard.classList.add('bump');
-}
-
-document.getElementById('sidebarCartBtn').addEventListener('click', openCartDrawer);
-document.getElementById('cartClose').addEventListener('click', closeCartDrawer);
-document.getElementById('cartBackdrop').addEventListener('click', closeCartDrawer);
-document.getElementById('cartCheckoutBtn').addEventListener('click', startCartCheckout);
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeCartDrawer();
-});
-
-// Initial render (in case the cart was non-empty from a previous visit).
-renderSidebarCart();
-// Subscribe to changes: bump the sidebar card on add, also keep the open
-// drawer in sync if it's currently visible.
-onCartChange(() => {
-  renderSidebarCart();
-  renderCartDrawer();
-  if (getCartCount() > 0) bumpSidebarCart();
-});
-
-renderLoginState();
-populateSidebarNav();
+populateVoteSidebar();
+populateQuickLinks();
 applyRoute();
 
 window.addEventListener('hashchange', () => {
