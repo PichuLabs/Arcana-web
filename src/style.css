@@ -52,10 +52,12 @@ body {
   position: relative;
 }
 
+/* Darkens the fixed background image so body text stays readable over it.
+   Kept light enough that the artwork still reads as artwork. */
 .video-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(13, 15, 19, 0.7);
+  background: rgba(13, 15, 19, 0.25);
   z-index: -1;
 }
 
@@ -323,15 +325,15 @@ body {
 
 
 /* ========== TOPNAV (horizontal category bar) ========== */
+/* Fully transparent: the background image shows through and the bar reads as
+   floating labels rather than a chrome band. Content scrolls behind it. */
 .topnav {
   display: flex;
   justify-content: center;
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(13, 15, 19, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: transparent;
 }
 
 .topnav-inner {
